@@ -11,25 +11,87 @@ console.log('Server running at http://127.0.0.1:8880/');
 */
 
 var nftxLib = require('./nftxLib');
-
-
 const express = require('express');
 const asyncify = require('express-asyncify');
-
-
-//var web3 = new Web3(FTM_RPC);
-
 const app = asyncify(express());
 
 
 
 
+
+
+
+
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json()); 
 
 app.get('/', function (req, res) {
    res.send('hello world')
- })
+})
+
+app.get('/nft/nft/:nftid', async (req, res) => {
+   var NFTData = {
+      NFT: {},
+      BIDS: {},
+      realOwner: '',
+      owner: '',
+   };
+   res.send(NFTData);
+})
+
+app.get('/nft/viewnft/:nftid', async (req, res) => {
+   var NFT =  await nftxLib.viewNFT(req.params.nftid);
+   res.send(NFT);
+})
+
+app.get('/nft/originalcreator/:nftid', async (req, res) => {
+   var creator =  await nftxLib.OriginalNFTCreators(req.params.nftid);
+   res.send(creator);
+})
+
+app.get('/nft/getrealowner/:nftid', async (req, res) => {
+   var owner =  await nftxLib.getRealOwner(req.params.nftid);
+   res.send(owner);
+})
+
+app.get('/nft/ownerof/:nftid', async (req, res) => {
+   var owner =  await nftxLib.ownerOf(req.params.nftid);
+   res.send(owner);
+})
+
+app.get('/nft/viewbid/:bid_id', async (req, res) => {
+   var bid =  await nftxLib.viewBid(req.params.bid_id);
+   res.send(bid);
+})
+
+app.get('/nft/nftboost/:nftid', async (req, res) => {
+   var boost =  await nftxLib.NFTBoost(req.params.nftid);
+   res.send(boost);
+})
+
+
+app.get('/nft/vieworderbids/:order_id', async (req, res) => {
+   var bids =  await nftxLib.viewOrderBids(req.params.order_id, true);
+   res.send(bids);
+})
+
+
+app.get('/nft/viewpaymentmethod/:address', async (req, res) => {
+   var status =  await nftxLib.viewPaymentMethod(req.params.address);
+   res.send(status);
+})
+
+app.get('/nft/viewpaymentmethods', async (req, res) => {
+   var status =  await nftxLib.viewPaymentMethods();
+   res.send(status);
+})
+
+app.get('/nft/settings', async (req, res) => {
+   var Settings =  await nftxLib.Settings();
+   res.send(Settings);
+})
+
+
 
 app.get('/api/info', async (req, res) => {
   //var NFT = await getNFT(1);
