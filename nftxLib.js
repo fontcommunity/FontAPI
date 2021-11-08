@@ -4,6 +4,8 @@ const FTM_RPC = 'https://rpc.ftm.tools';
 const FTM_NFTEX_ADDRESS = '0x9c05005073218c4Ab688D092E8476D2F2a81b458';
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
+const FontMintableURL = 'https://backend.font.community/api/fantom_mintable';
+
 const PaymentTokens = {
     "0xbbc4a8d076f4b1888fec42581b6fc58d242cf2d5": 'FONT',
     "0x74b23882a30290451A17c44f4F05243b6b58C76d": 'ETH',
@@ -23,6 +25,7 @@ var filesys = require('fs');
 var Web3 = require('web3');
 var web3 = new Web3(new Web3.providers.HttpProvider(FTM_RPC));
 var _ = require('underscore');
+var request = require('sync-request');
 
 
 
@@ -38,7 +41,33 @@ async function viewNFT(nft_id) {
 async function OriginalNFTCreators(nft_id) {
     var creator = await ContractNFTEx.methods.OriginalNFTCreators(nft_id).call(); 
     return creator;
-}   
+}  
+
+//Get all font mintable and owners 
+async function fontMintableMinted(){
+    var res = request('GET', FontMintableURL);
+    if(!res) {
+        return false;
+    }
+    var items = res.getBody();
+    if(!items){
+        return false
+    }
+
+    items = JSON.parse(items);
+    if(!items){
+        return false
+    }
+
+    for(let i in items) {
+        var item = items[i];
+        var minted = await ContractNFTEx.methods.OriginalNFTCreators(item.id).call(); 
+        items[i].address_mapped = minted;
+        items[i].mapped = (minted == ZERO_ADDRESS) ? false : true;
+    }
+    return items;
+
+}
 
 //Get real owner 
 async function getRealOwner(nft_id) {
@@ -273,6 +302,7 @@ module.exports = {
     FontRewardPerToken: FontRewardPerToken,
     FontRewardperTokenAll: FontRewardperTokenAll,
     Settings: Settings,
+    fontMintableMinted: fontMintableMinted
 
       //Get list of all the texts for preview 
       //cleanup: _cleaup_font_src_files,
