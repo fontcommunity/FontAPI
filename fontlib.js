@@ -27,6 +27,9 @@ const FONT_API_SETTINGS = 'http://backend.font.community/api/settings';
 
 const API_GET_FONT_FILES = 'https://backend.font.community/api/font_files/{font_id}?detail=1';
 
+const API_GET_FONT_DATA_FULL = 'https://backend.font.community/api/font/';
+
+const API_GET_FONT_ENTITY = 'https://backend.font.community/api/font/{font_id}/entity.json';
 
 _entry_point();
 
@@ -45,6 +48,44 @@ async function _entry_point() {
 
 }
 
+
+async function generateFontCache(font_id) {
+  //generate the metadata json and store 
+  var metadata = await _process_single_font(font_id);
+
+  //pull the images and store in disk 
+  var images = await _save_font_images(font_id);
+
+  //save data.json 
+  var data = await _save_font_data_full(font_id);
+
+  //save entitu.json 
+  var entity = await _save_font_data_entity(font_id);
+
+  //Generate zip file for download 
+  //@todo 
+
+
+  //generate NFT json 
+  //@todo
+
+  //Genereate license sales data 
+  //@todo
+
+  //generate revisions 
+  //@todo
+
+  //generate license data 
+  //@todo
+
+  return {
+    metadata: metadata ? true : false,
+    images: images ? true : false,
+    data: data ? true : false,
+    entity: entity ? true : false,
+  }
+
+}
 
 
 //this is entry
@@ -529,6 +570,97 @@ async function _get_all_font_ids() {
   return false;
 }
 
+
+//Save the full font data 
+async function _save_font_data_full(font_id) {
+  var url = API_GET_FONT_DATA_FULL + font_id;
+  var filename = OUTPUT_DIR + '/' + font_id + '/data.json';
+  var font_data = await _get_remote_json_and_save(url, filename);
+
+  return font_data ? true : false;
+}
+
+//Save the full font entity data 
+async function _save_font_data_entity(font_id) {
+
+  var filename = OUTPUT_DIR + '/' + font_id + '/entity.json';
+
+  var url = API_GET_FONT_ENTITY.split('{font_id}').join(font_id);
+
+  var font_data = await _get_remote_json_and_save(url, filename);
+
+  return font_data ? true : false;
+}
+
+
+//get a font ID and save all images to font image folder 
+async function _save_font_images(font_id) {
+  var url = API_GET_FONT_DATA_FULL + font_id;
+  var font_data = await _get_remote_json_and_save(url);
+
+
+    //main thumb
+
+
+  if(font_data && font_data.img) {
+
+    var dir_image_main_thumb = OUTPUT_DIR + '/' + font_id + '/img';
+    if(!fs.existsSync(dir_image_main_thumb)){
+      fs.mkdirSync(dir_image_main_thumb, { recursive: true });
+    }          
+
+    var _main_img_file = font_data.img.substr(font_data.img.lastIndexOf('/') + 1);
+    dir_image_main_thumb = dir_image_main_thumb + '/' + _main_img_file;
+
+    var res = request('GET', font_data.img);
+    var file_content = res.getBody();
+    fs.writeFileSync(dir_image_main_thumb, file_content);      
+  }  
+
+  if(font_data && _.has(font_data, 'splash_images') && font_data.splash_images.count) {
+
+    var dir_image_thumbs = OUTPUT_DIR + '/' + font_id + '/img/splash/thumb/';
+    if(!fs.existsSync(dir_image_thumbs)){
+      fs.mkdirSync(dir_image_thumbs, { recursive: true });
+    }
+
+    var dir_image_orgn = OUTPUT_DIR + '/' + font_id + '/img/splash/orgn/';
+    if(!fs.existsSync(dir_image_orgn)){
+      fs.mkdirSync(dir_image_orgn, { recursive: true });
+    }    
+  
+    var tmp_output = [];
+
+    //download and save thumbnails
+    for(let t in font_data.splash_images.thumbnail) {
+      var _url = font_data.splash_images.thumbnail[t];
+
+      var _file = _url.substr(_url.lastIndexOf('/') + 1);
+      _file = dir_image_thumbs + _file;
+
+      var res = request('GET', _url);
+      var file_content = res.getBody();
+      fs.writeFileSync(_file, file_content);
+    }
+
+    //download and save original images
+    for(let t in font_data.splash_images.org) {
+      var _url = font_data.splash_images.org[t];
+
+      var _file = _url.substr(_url.lastIndexOf('/') + 1);
+      _file = dir_image_orgn + _file;
+      
+      var res = request('GET', _url);
+      var file_content = res.getBody();
+      fs.writeFileSync(_file, file_content);
+    }    
+
+
+    return font_data.splash_images;
+  }
+  return font_data;
+}
+
 async function _get_remote_font_files_by_id(font_id) {
   const url = 'http://backend.font.community/api/font_files/' + font_id;
   var font_files = await _get_remote_json_and_save(url);
@@ -539,7 +671,7 @@ async function _get_remote_font_files_by_id(font_id) {
 async function _is_non_empty_array(_var) {
   if(_var && _.isArray(_var) && _.size(_var)) {
     return _var;
-  }
+  } 
   return false;
 }
 
@@ -547,11 +679,13 @@ async function _is_non_empty_object(_var) {
   if(_var && _.isObject(_var) && _.size(_var)) {
     return true;
   }
-  return false;
+  return false; 
 }
 
 
 module.exports = { 
   singleFont: _process_single_font,
+  _save_font_images: _save_font_images,
+  generateFontCache: generateFontCache, 
 
 };

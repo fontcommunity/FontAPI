@@ -104,6 +104,16 @@ app.get('/api/fontparse/:font_id', async (req, res) => {
    res.send(fontFiles);
 })
 
+app.get('/api/fontcache/:font_id', async (req, res) => {
+   var fontFiles = await fontlib.generateFontCache(req.params.font_id);
+   res.send(fontFiles);  
+})
+
+app.get('/api/testfond/:font_id', async (req, res) => {
+   var fontFiles = await fontlib._save_font_images(req.params.font_id);
+   res.send(fontFiles);  
+})
+
 app.post('/api/v1/getback', (req, res) => {
   res.send({ ...req.body });
 });
