@@ -11,6 +11,15 @@ var _ = require('underscore');
 var async = require("async");
 var crypto = require('crypto');
 var request = require('sync-request');
+ 
+const S3SyncClient = require('s3-sync-client');
+const mime = require('mime-types');
+const s3 = require('s3-lambo');
+const AWS = require('aws-sdk'); 
+
+
+require('dotenv').config()
+
 
 
 var print = require('pretty-print');
@@ -31,7 +40,9 @@ const API_GET_FONT_DATA_FULL = 'https://backend.font.community/api/font/';
 
 const API_GET_FONT_ENTITY = 'https://backend.font.community/api/font/{font_id}/entity.json';
 
-_entry_point();
+const AWS_S3_FONT_FOLDER_FOCOFONTEMBED_BUCKET = 'focofontembed';
+
+//_entry_point();
 
 
 async function _entry_point() {
@@ -48,7 +59,17 @@ async function _entry_point() {
 
 }
 
+async function generateFontCacheS3(font_id) {
+  var cache_status = await generateFontCache(font_id);
+  var s3_status = await _aws_sync_font(font_id);
+  return {
+    cache: cache_status,
+    s3: s3_status,
+  };
+}
 
+//Create a cache folder and save all json, image and font data and return the status 
+//@todo, option to check the 
 async function generateFontCache(font_id) {
   //generate the metadata json and store 
   var metadata = await _process_single_font(font_id);
@@ -86,6 +107,62 @@ async function generateFontCache(font_id) {
   }
 
 }
+
+
+//Upload all files belogs to give font
+async function _aws_sync_font(font_id) {
+  var src_dir = OUTPUT_DIR + '/' + font_id + '/';
+  var dst_dir = 's3://' + AWS_S3_FONT_FOLDER_FOCOFONTEMBED_BUCKET + '/fonts/' + font_id ;
+  var dst_dir_s3 = 'fonts/' + font_id + '/';
+
+
+  
+  AWS.config.update({
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY
+  });  
+  const s3 = new AWS.S3();
+
+  var _font_files = read(src_dir);
+  var ret = [];
+  for(let f in _font_files) {
+    var font_file = src_dir + _font_files[f];
+
+    var _src = src_dir + _font_files[f];
+
+    
+    key = dst_dir_s3 + _font_files[f];
+
+    var _ret = await _upload_s3_single_file(_src, key, s3);
+
+    
+    var _item = {
+      src: _src,
+      dst: key,
+      ret: _ret.Location,   //asd
+    };
+
+    ret.push(_item);
+  }
+  return ret;
+  
+
+} 
+
+async function _upload_s3_single_file(src, key, s3 = null, ACL = 'public-read') {
+  const res = await new Promise((resolve, reject) => {
+    s3.upload({
+      Bucket: process.env.AWS_S3_BUCKET,
+      Body: fs.createReadStream(src),
+      Key: key,
+      ACL: ACL,
+      ContentType: mime.contentType(path.extname(src)),
+    }, (err, data) => err == null ? resolve(data) : reject(err));
+  });
+
+  return res.Location;
+}
+
 
 
 //this is entry
@@ -687,5 +764,6 @@ module.exports = {
   singleFont: _process_single_font,
   _save_font_images: _save_font_images,
   generateFontCache: generateFontCache, 
-
+  generateFontCacheS3: generateFontCacheS3, 
+  _aws_sync_font: _aws_sync_font,
 };

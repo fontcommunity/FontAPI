@@ -109,9 +109,19 @@ app.get('/api/fontcache/:font_id', async (req, res) => {
    res.send(fontFiles);  
 })
 
+app.get('/api/fontcaches3/:font_id', async (req, res) => {
+   var status = await fontlib.generateFontCacheS3(req.params.font_id);
+   res.send(status);  
+})
+
+
+
+
 app.get('/api/testfond/:font_id', async (req, res) => {
-   var fontFiles = await fontlib._save_font_images(req.params.font_id);
-   res.send(fontFiles);  
+
+   var test = await fontlib._aws_sync_font(req.params.font_id);
+
+   res.send(test);  
 })
 
 app.post('/api/v1/getback', (req, res) => {
