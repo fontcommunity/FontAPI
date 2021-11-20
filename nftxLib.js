@@ -31,6 +31,70 @@ var request = require('sync-request');
 
 var ContractNFTEx = loadContract('fontnftex.json');
 
+async function getAllNFT(){
+    //@todo implement cache 
+
+    //Get list of IDS from remote (from backend)
+    var items = await _getFontMintableFromBackend();
+
+    //Get list from cache
+
+    //Query each ID blockchain
+
+    //manipulate the data 
+
+    //create another cache
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*+++++++++++++++++++++++++    MY NFTs    ++++++++++++++++++++++++++++++/
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+async function getMyNFTs(address) {
+
+    return {
+        
+        'mintable': [],
+        'inWallet': [],
+        'inOrder': [],
+        'inExchange': [],
+        'myBids': [],
+        'totalSalesNFT': {
+
+        },
+        'totalSalesLicense': {
+
+        },
+        'licenses': [],
+        'fontRewards': [],
+        'address': address,
+
+    };
+}
+
+
+
+async function NFTDetails(nft_id) {
+
+
+    var NFT = await viewNFT(nft_id);
+    var realOwner = await getRealOwner(nft_id);
+    var owner = await ownerOf(nft_id);
+    var creator = await OriginalNFTCreators(nft_id);
+    var boost = await NFTBoost(nft_id);
+
+    return {
+        NFT: NFT,
+        BIDS: {},
+        'realOwner': realOwner,
+        owner: owner,
+        creator: creator,
+        boost: boost,
+    };    
+ 
+    return NFTData;
+
+}
+
 //View an NFT
 async function viewNFT(nft_id) {
     var NFT = await ContractNFTEx.methods.viewNFT(nft_id).call(); 
@@ -43,8 +107,32 @@ async function OriginalNFTCreators(nft_id) {
     return creator;
 }  
 
-//Get all font mintable and owners 
-async function fontMintableMinted(){
+async function fontMintableByAddress(address) {
+
+    
+    var items = await fontMintableMinted()
+    if(!items){
+        return false
+    }
+    var ret = [];
+    for(let i in items) {
+        var item = items[i];
+        if(items[i].address_mapped.toLowerCase() == address.toLowerCase() || address == 'all') {
+            items[i].NFT = await ContractNFTEx.methods.viewNFT(item.id).call(); 
+            items[i].NFT = _nftObj(items[i].NFT);
+            ret.push(items[i]);
+        }
+    }
+
+    return {
+        count: _.size(ret),
+        data: ret,
+        user: {},
+    }
+
+}
+
+async function _getFontMintableFromBackend() {
     var res = request('GET', FontMintableURL);
     if(!res) {
         return false;
@@ -55,6 +143,16 @@ async function fontMintableMinted(){
     }
 
     items = JSON.parse(items);
+    if(!items){
+        return false
+    }
+    return items;
+}
+
+//Get all font mintable and owners 
+async function fontMintableMinted(){
+
+    var items = await _getFontMintableFromBackend();
     if(!items){
         return false
     }
@@ -302,8 +400,11 @@ module.exports = {
     FontRewardPerToken: FontRewardPerToken,
     FontRewardperTokenAll: FontRewardperTokenAll,
     Settings: Settings,
-    fontMintableMinted: fontMintableMinted
-
+    fontMintableMinted: fontMintableMinted,
+    fontMintableByAddress:fontMintableByAddress,
+    NFTDetails: NFTDetails,
+    getAllNFT: getAllNFT,
+    getMyNFTs: getMyNFTs,
       //Get list of all the texts for preview 
       //cleanup: _cleaup_font_src_files,
     

@@ -26,17 +26,28 @@ const app = asyncify(express());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 
+//app.all('*', function(req, res, next) {
+//   res.header('Access-Control-Allow-Origin', '*');
+//});
+
+
 app.get('/', function (req, res) {
    res.send('hello world')
 })
 
+app.get('/test', function (req, res) {
+   res.send([1,2,3,4])
+})
+
+app.get('/nft/mynft/:address', async (req, res) => {
+   var mynfts =  await nftxLib.getMyNFTs(req.params.address);
+   res.send(mynfts);
+})
+
+
 app.get('/nft/nft/:nftid', async (req, res) => {
-   var NFTData = {
-      NFT: {},
-      BIDS: {},
-      realOwner: '',
-      owner: '',
-   };
+   var NFTData = await nftxLib.NFTDetails(req.params.nftid);
+   
    res.send(NFTData);
 })
 
@@ -94,6 +105,11 @@ app.get('/nft/settings', async (req, res) => {
 
 app.get('/nft/mintable', async (req, res) => {
    var items =  await nftxLib.fontMintableMinted();
+   res.send(items);
+})
+
+app.get('/nft/mint/:address', async (req, res) => {
+   var items =  await nftxLib.fontMintableByAddress(req.params.address);
    res.send(items);
 })
 
