@@ -51,9 +51,13 @@ async function getAllNFT(){
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 async function getMyNFTs(address) {
 
+    var mintable = await _getFontMintableByAddressFromBackend(address);
+
+    //create a db (sqlite table) to trace the current NFT ID and owner 
+
     return {
         
-        'mintable': [],
+        'mintable': mintable, 
         'inWallet': [],
         'inOrder': [],
         'inExchange': [],
@@ -132,8 +136,25 @@ async function fontMintableByAddress(address) {
 
 }
 
-async function _getFontMintableFromBackend() {
-    var res = request('GET', FontMintableURL);
+async function _getFontMintableByAddressFromBackend(address) {
+    var url = 'https://backend.font.community/api/fantom_mintable_by_address/' + address;
+    var items = await _getRemoteJson(url);
+    
+    if(!items){
+        return false
+    }
+
+    for(let i in items) {
+        var item = items[i];
+        var minted = await ContractNFTEx.methods.OriginalNFTCreators(item.id).call(); 
+        items[i].address_mapped = minted;
+        items[i].mapped = (minted == ZERO_ADDRESS) ? false : true;
+    }  
+    return items;  
+}
+
+async function _getRemoteJson(url) {
+    var res = request('GET', url);
     if(!res) {
         return false;
     }
@@ -146,7 +167,12 @@ async function _getFontMintableFromBackend() {
     if(!items){
         return false
     }
-    return items;
+    return items;    
+}
+
+async function _getFontMintableFromBackend() {
+    return _getRemoteJson(FontMintableURL);
+    
 }
 
 //Get all font mintable and owners 
