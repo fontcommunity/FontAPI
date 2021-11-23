@@ -33,7 +33,7 @@ app.get('/', function (req, res) {
 app.get('/test/db/:nftid', async (req, res) => {
    var nft = await DB.loadNFTsByOwner(req.params.nftid);
    res.send(nft);
-});
+});   
 
 app.get('/test', cache('5 minutes'), (req, res) => {
 

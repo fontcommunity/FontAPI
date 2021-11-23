@@ -27,6 +27,8 @@ var web3 = new Web3(new Web3.providers.HttpProvider(FTM_RPC));
 var _ = require('underscore');
 var request = require('sync-request');
 
+var hlp = require('./helper');
+
 
 
 var ContractNFTEx = loadContract('fontnftex.json');
@@ -102,7 +104,7 @@ async function NFTDetails(nft_id) {
 //View an NFT
 async function viewNFT(nft_id) {
     var NFT = await ContractNFTEx.methods.viewNFT(nft_id).call(); 
-    return _nftObj(NFT);
+    return hlp.ObjNFT(NFT);
 }
 
 //Get original creator 
@@ -123,7 +125,7 @@ async function fontMintableByAddress(address) {
         var item = items[i];
         if(items[i].address_mapped.toLowerCase() == address.toLowerCase() || address == 'all') {
             items[i].NFT = await ContractNFTEx.methods.viewNFT(item.id).call(); 
-            items[i].NFT = _nftObj(items[i].NFT);
+            items[i].NFT = ObjNFT(items[i].NFT);
             ret.push(items[i]);
         }
     }
@@ -232,7 +234,7 @@ async function viewBid(bid_id) {
     catch {
 
     }
-    return _bidObj(bid);
+    return hlp.ObjBid(bid);
 }
 
 async function viewOrderBids(order_id, load = true) {
@@ -350,60 +352,6 @@ function loadContract(ABI_file) {
 
     var ContractNFTEx = new web3.eth.Contract(ABI_NFTex, FTM_NFTEX_ADDRESS);
     return ContractNFTEx;
-}
-
-
-function _bidObj(_bid) {
-    var BID = {
-        status: 0, //Bid status : 1/open, 2/filled, 3/cancelled
-        bidder: ZERO_ADDRESS, //Address of the bidder
-        referral: ZERO_ADDRESS, //referral address
-        orderID: "0", //ID of the order 
-        offer: "0", //Offer set be the bidder         
-    };
-
-    if(_.isArray(_bid)) {
-        BID.status = parseInt(_bid[0]);
-        BID.bidder = _bid[1];
-        BID.referral = _bid[2];
-        BID.orderID = _bid[3];
-        BID.offer = _bid[4];
-    }
-
-    return BID;
-}
-
-//Helper function to conver ViewNFT array to object
-function _nftObj(_nft) {
-
-    var NFT = {
-        auction: false,
-        status: 0,
-        royality: 0,
-        referralCommission: 0,
-        owner: '0x0000000000000000000000000000000000000000',
-        token: '0x0000000000000000000000000000000000000000',
-        orderID: "0",
-        price: "0",
-        minPrice: "0",
-        highestBidID: "0",
-
-    };
-
-    if(_.isArray(_nft)) {
-        NFT.auction = _nft[0];
-        NFT.status = parseInt(_nft[1]);
-        NFT.royality = parseInt(_nft[2]);
-        NFT.referralCommission = parseInt(_nft[3]);
-        NFT.owner = _nft[4];
-        NFT.token = _nft[5];
-        NFT.orderID = _nft[6];
-        NFT.price = _nft[7];
-        NFT.minPrice = _nft[8];
-        NFT.highestBidID = _nft[9];
-    }
-
-    return NFT;
 }
 
 
