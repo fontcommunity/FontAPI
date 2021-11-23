@@ -1,14 +1,6 @@
 #!/usr/bin/env nodejs
 
-/*
-var http = require('http');
-http.createServer(function (request, response) {
-   response.writeHead(200, {'Content-Type': 'text/plain'});
-   response.end('Hello World! Node.js is working correctly.\n');
-}).listen(8080);
-console.log('Server running at http://127.0.0.1:8880/');
 
-*/
 
 var nftxLib = require('./nftxLib');
 const express = require('express');
@@ -26,8 +18,8 @@ const onlyStatus200 = (req, res) => res.statusCode === 200;
 
 
 //app.use(cache('5 minutes', onlyStatus200));
-//app.use(express.urlencoded({ extended: true }));
-//app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); 
 
 //app.all('*', function(req, res, next) {
 //   res.header('Access-Control-Allow-Origin', '*');
@@ -37,6 +29,11 @@ const onlyStatus200 = (req, res) => res.statusCode === 200;
 app.get('/', function (req, res) {
    res.send('hello world')
 })
+
+app.get('/test/db/:nftid', async (req, res) => {
+   var nft = await DB.loadNFTsByOwner(req.params.nftid);
+   res.send(nft);
+});
 
 app.get('/test', cache('5 minutes'), (req, res) => {
 

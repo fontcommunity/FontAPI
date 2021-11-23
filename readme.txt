@@ -1,6 +1,21 @@
 API to get All blockchain data from 
 
 
+List of APIs that needs cache
+    All Avaliable NFTs
+    User NFTs
+
+Get User NFTs 
+    load from Calling URL (bulk as well as individual item)
+    load from cron (via drupal api)
+    
+Middlewares
+    NFT data to DB data 
+    DB data to NFT data
+
+All APIs are cacheable and resetable 
+There is DB maintained in local which will be another layer of cache, especally to fetch the NFTs, orders and bids 
+
 Font API /font/font_id
 
     1) All drupal (make it cacheable)
