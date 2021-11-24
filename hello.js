@@ -13,7 +13,7 @@ let cache = apicache.middleware;
 
 const onlyStatus200 = (req, res) => res.statusCode === 200;
 
-
+var hlp = require('./helper');
 
 
 
@@ -24,6 +24,29 @@ app.use(express.json());
 //app.all('*', function(req, res, next) {
 //   res.header('Access-Control-Allow-Origin', '*');
 //});
+
+app.get('/api/install', async (req, res) => {
+   var r = await DB.createTables();
+   res.send(r);
+});   
+
+app.get('/api/dbcache/:nftid', async (req, res) => {
+   var r = [1,2,3,4];
+   //load the nft detail 
+   var NFTData = await nftxLib.NFTDetails(req.params.nftid);
+
+   //call the db cache creater to load it
+   var nftObj = hlp.convert_json_to_db_nft(NFTData);
+
+
+   //send the new item
+   var ret = await DB.upsertRow(nftObj);
+
+   //load from db
+   var NFT = await DB.loadNFT(req.params.nftid);
+   
+   res.send(ret);
+});   
 
 
 app.get('/', function (req, res) {

@@ -1,12 +1,88 @@
 var _ = require('underscore');
 
+var Web3 = require('web3');
+var web3utils = Web3.utils;
+
 //take the db row and convert back to NFT object
 function convert_db_to_json_nft(item) {
+    if(!(item && item.nft_id && parseInt(item.nft_id))) {
+        return false;
+    }
 
-}
+    
 
-function convert_json_to_db_nft(item) {
+    var maps = [
+        'NFT_auction', 'NFT_status', 'NFT_royality', 'NFT_referralCommission', 'NFT_owner', 'NFT_token', 'NFT_orderID',  'NFT_price', 'NFT_minPrice', 'NFT_highestBidID'
+    ];
 
+    var _obj = [];
+    for(let m in maps) {
+        var field = maps[m];
+        _obj.push(item[field]);
+    }
+    var ret = {
+        NFT: ObjNFT(_obj),
+        BIDS: [],
+        realOwner: item.NFT_owner,
+        owner: item.NFT_owner,
+        creator: item.creator_address,
+        boost: item.boost,
+        nft_id: item.nft_id,
+        oef: item,
+    };
+
+    return ret;
+}   
+
+function convert_json_to_db_nft(item, debug = false) {
+    if(!(item && item.nft_id && parseInt(item.nft_id))) {
+        return false;
+    }
+
+    var custody = (parseInt(item.NFT.status) == 1) ? 1 : 0;
+
+    var minted = (parseInt(item.NFT.status) == 0) ? 0 : 1;
+
+    var mapped = 0;
+
+    if(item.creator && web3utils.isAddress(item.creator) && item.creator != "0x0000000000000000000000000000000000000000") {
+        mapped = 1;
+    }
+    
+    
+
+    var dbRow = {
+        nft_id: parseInt(item.nft_id),
+        owner_address: item.NFT.owner,
+        creator_address: item.creator, 
+        mapped: mapped,
+        minted: minted,
+        custody: custody, 
+        font_name: item.font.name,
+        creator_name: item.font.creator_name, 
+        NFT_auction: item.NFT.auction,
+        NFT_status: item.NFT.status,
+        NFT_royality: item.NFT.royality, 
+        NFT_referralCommission: item.NFT.referralCommission,
+        NFT_owner: item.NFT.owner,
+        NFT_token: item.NFT.token, 
+        NFT_orderID: parseInt(item.NFT.orderID),
+        NFT_price: item.NFT.price, 
+        NFT_minPrice: item.NFT.minPrice,
+        NFT_highestBidID: item.NFT.highestBidID,
+        boost: item.boost, 
+        licenses_sales_count: 0, 
+        licenses_sales_amount: '0'
+    };
+    if(!debug) {
+        return dbRow;
+    }
+    
+
+    return {
+        'item': item,
+        'dbRow': dbRow
+    };
 }
 
 
@@ -68,5 +144,7 @@ function ObjNFT(_nft) {
 module.exports = { 
     ObjBid: ObjBid,
     ObjNFT: ObjNFT,
+    convert_db_to_json_nft:convert_db_to_json_nft,
+    convert_json_to_db_nft:convert_json_to_db_nft,
 
 };

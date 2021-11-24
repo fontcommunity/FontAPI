@@ -89,12 +89,17 @@ async function NFTDetails(nft_id) {
     var boost = await NFTBoost(nft_id);
 
     return {
+        nft_id: nft_id,
         NFT: NFT,
         BIDS: {},
         'realOwner': realOwner,
         owner: owner,
         creator: creator,
         boost: boost,
+        font: {
+            name: '',
+            creator_name: '',
+        }
     };    
  
     return NFTData;
