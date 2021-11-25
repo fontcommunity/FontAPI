@@ -62,7 +62,8 @@ async function schemas() {
             NFT_highestBidID INTEGER,
             boost TEXT, 
             licenses_sales_count INTEGER, 
-            licenses_sales_amount TEXT
+            licenses_sales_amount TEXT,
+            teaser TEXT
         );`;
 
     var createTableBids = `
@@ -117,11 +118,11 @@ async function upsertRow(item) {
 
         var columns = 'nft_id, owner_address, creator_address, mapped, minted, custody, font_name, creator_name, NFT_auction, NFT_status, NFT_royality, NFT_referralCommission, NFT_owner, NFT_token, ';
  
-        const stmt = db.prepare(`INSERT OR REPLACE INTO nfts (nft_id, owner_address, creator_address, mapped, minted, custody, font_name, creator_name, NFT_auction, NFT_status, NFT_royality, NFT_referralCommission, NFT_owner, NFT_token, NFT_orderID, NFT_price, NFT_minPrice, NFT_highestBidID, boost, licenses_sales_count, licenses_sales_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        const stmt = db.prepare(`INSERT OR REPLACE INTO nfts (nft_id, owner_address, creator_address, mapped, minted, custody, font_name, creator_name, NFT_auction, NFT_status, NFT_royality, NFT_referralCommission, NFT_owner, NFT_token, NFT_orderID, NFT_price, NFT_minPrice, NFT_highestBidID, boost, licenses_sales_count, licenses_sales_amount, teaser) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
         //const stmt = db.prepare('INSERT OR REPLACE INTO nfts VALUES (@nft_id, @owner_address, @NFT_owner)');
         ret = stmt.run(item.nft_id, item.owner_address, item.creator_address, item.mapped, item.minted, item.custody, 
             item.font_name, item.creator_name, item.NFT_auction, item.NFT_status, item.NFT_royality, item.NFT_referralCommission, item.NFT_owner, item.NFT_token,
-            item.NFT_orderID, item.NFT_price, item.NFT_minPrice, item.NFT_highestBidID, item.boost, item.licenses_sales_count, item.licenses_sales_amount
+            item.NFT_orderID, item.NFT_price, item.NFT_minPrice, item.NFT_highestBidID, item.boost, item.licenses_sales_count, item.licenses_sales_amount, item.teaser
             );
             //, 
             //, item.NFT_owner, NFT_token); 
@@ -199,12 +200,17 @@ async function checkIfFontExists(nft_id) {
     return false;
 }
 
-async function loadNFT(nft_id) {
+async function loadNFT(nft_id, teaserJson = false) {
     nft_id = parseInt(nft_id);
     const stmt = db.prepare('SELECT * FROM nfts WHERE nft_id = ?');
     const item = stmt.get(nft_id);    
 
     if(item && parseInt(item.nft_id) == nft_id) {
+
+        if(teaserJson && item.teaser) {
+            item.teaser = JSON.parse(item.teaser);
+        }
+
         return item;
     }
     return false;
@@ -212,7 +218,7 @@ async function loadNFT(nft_id) {
 }
 
 //Load NFTs by owner address
-async function loadNFTsByOwner(owner_address) {
+async function loadNFTsByOwner(owner_address, teaserJson = true) {
     if(owner_address) {
         if(!web3utils.isAddress(owner_address)) {
             return false;
@@ -227,6 +233,13 @@ async function loadNFTsByOwner(owner_address) {
     const stmt =  db.prepare(SQL);
     
     const items = stmt.all(owner_address, owner_address);
+
+    if(teaserJson && items) {
+        for(let i in items) {
+            items[i].teaser = JSON.parse(items[i].teaser);
+        }
+    }
+
     return items;
 }
 

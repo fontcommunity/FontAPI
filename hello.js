@@ -203,8 +203,14 @@ app.get('/api/fontcaches3/:font_id', async (req, res) => {
 
 app.get('/api/font/:font_id', cache('1 day'), async (req, res) => {
    var data = await fontlib.loadFont(req.params.font_id);
+   res.send(data); 
+});
+
+app.get('/api/fontteaser/:font_id', cache('1 day'), async (req, res) => {
+   var data = await hlp.getFontTeaser(req.params.font_id, true);
    res.send(data);
 });
+
 
 
 app.get('/api/testfond/:font_id', async (req, res) => {

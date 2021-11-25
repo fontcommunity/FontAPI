@@ -212,7 +212,7 @@ async function _process_single_font(font_id, options) {
 
 
 //Get the font data from drupal api
-async function _get_drupal_font_api(font_id){
+async function loadFont(font_id){
   var api_url = FONT_API_BASE + font_id;
   
   var data = await hlp.getRemoteJson(api_url);
@@ -754,5 +754,5 @@ module.exports = {
   generateFontCache: generateFontCache, 
   generateFontCacheS3: generateFontCacheS3, 
   _aws_sync_font: _aws_sync_font,
-  loadFont: _get_drupal_font_api,
+  loadFont: loadFont,
 };

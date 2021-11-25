@@ -51,31 +51,7 @@ async function getAllNFT(){
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /*+++++++++++++++++++++++++    MY NFTs    ++++++++++++++++++++++++++++++/
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-async function getMyNFTs(address) {
 
-    var mintable = await _getFontMintableByAddressFromBackend(address);
-
-    //create a db (sqlite table) to trace the current NFT ID and owner 
-
-    return {
-        
-        'mintable': mintable, 
-        'inWallet': [],
-        'inOrder': [],
-        'inExchange': [],
-        'myBids': [],
-        'totalSalesNFT': {
-
-        },
-        'totalSalesLicense': {
-
-        },
-        'licenses': [],
-        'fontRewards': [],
-        'address': address,
-
-    };
-}
 
 
 //Get everything about NFT by ID
@@ -85,6 +61,7 @@ async function NFTDetails(nft_id) {
     var owner = await ownerOf(nft_id);
     var creator = await OriginalNFTCreators(nft_id);
     var boost = await NFTBoost(nft_id);
+    var teaser = await hlp.getFontTeaser(nft_id, true);
 
     return {
         nft_id: nft_id,
@@ -97,7 +74,8 @@ async function NFTDetails(nft_id) {
         font: {
             name: '',
             creator_name: '',
-        }
+        },
+        teaser: teaser
     };    
  
     
@@ -115,7 +93,7 @@ async function NFTDBCache(nft_id) {
     var ret = await DB.upsertRow(nftObj);
  
     //load from db
-    var NFT = await DB.loadNFT(nft_id);
+    var NFT = await DB.loadNFT(nft_id, true);
     
     return NFT;
 }
@@ -403,7 +381,6 @@ module.exports = {
     fontMintableByAddress:fontMintableByAddress,
     NFTDetails: NFTDetails,
     getAllNFT: getAllNFT,
-    getMyNFTs: getMyNFTs,
     NFTDBCache: NFTDBCache,
     NFTDBcacheAll: NFTDBcacheAll
       //Get list of all the texts for preview 

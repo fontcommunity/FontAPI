@@ -3,6 +3,22 @@ var request = require('sync-request');
 var Web3 = require('web3');
 var web3utils = Web3.utils;
 
+async function getFontTeaser(font_id, compact = false) {
+    var API_URL = 'https://apppreprod.font.community/api/fontteaser/' + font_id;
+    var data = await getRemoteJson(API_URL);
+
+    //remove unwanted / redunnend data
+    if(!compact) {
+        return data;
+    }
+
+    if(!data) {
+        return data;
+    }
+    
+    return _.pick(data, 'unverified', 'img', 'categories', 'free', 'status', 'style_counts', 'display_font_file', 'display_font_family', 'display_font_weight');
+}
+
 
 //Get the remote json file
 async function getRemoteJson(url) {
@@ -68,7 +84,10 @@ function convert_json_to_db_nft(item, debug = false) {
         mapped = 1;
     }
     
-    
+    var teaser = null;
+    if(item.teaser && _.isObject(item.teaser)) {
+        teaser = JSON.stringify(item.teaser);
+    }
 
     var dbRow = {
         nft_id: parseInt(item.nft_id),
@@ -91,7 +110,8 @@ function convert_json_to_db_nft(item, debug = false) {
         NFT_highestBidID: item.NFT.highestBidID,
         boost: item.boost, 
         licenses_sales_count: 0, 
-        licenses_sales_amount: '0'
+        licenses_sales_amount: '0',
+        teaser: teaser
     };
     if(!debug) {
         return dbRow;
@@ -166,4 +186,5 @@ module.exports = {
     convert_db_to_json_nft: convert_db_to_json_nft,
     convert_json_to_db_nft: convert_json_to_db_nft,
     getRemoteJson: getRemoteJson,
+    getFontTeaser: getFontTeaser,
 };
