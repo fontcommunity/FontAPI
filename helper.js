@@ -28,9 +28,9 @@ function convert_db_to_json_nft(item) {
         creator: item.creator_address,
         boost: item.boost,
         nft_id: item.nft_id,
-        oef: item,
+        oef: item, 
     };
-
+ 
     return ret;
 }   
 
@@ -60,8 +60,8 @@ function convert_json_to_db_nft(item, debug = false) {
         custody: custody, 
         font_name: item.font.name,
         creator_name: item.font.creator_name, 
-        NFT_auction: item.NFT.auction,
-        NFT_status: item.NFT.status,
+        NFT_auction: item.NFT.auction ? 1 : 0,
+        NFT_status: item.NFT.status, 
         NFT_royality: item.NFT.royality, 
         NFT_referralCommission: item.NFT.referralCommission,
         NFT_owner: item.NFT.owner,

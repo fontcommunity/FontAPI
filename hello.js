@@ -25,28 +25,28 @@ app.use(express.json());
 //   res.header('Access-Control-Allow-Origin', '*');
 //});
 
-app.get('/api/install', async (req, res) => {
+app.get('/api/install', async (req, res) => { 
    var r = await DB.createTables();
    res.send(r);
 });   
 
 app.get('/api/dbcache/:nftid', async (req, res) => {
-   var r = [1,2,3,4];
-   //load the nft detail 
-   var NFTData = await nftxLib.NFTDetails(req.params.nftid);
-
-   //call the db cache creater to load it
-   var nftObj = hlp.convert_json_to_db_nft(NFTData);
-
-
-   //send the new item
-   var ret = await DB.upsertRow(nftObj);
-
    //load from db
-   var NFT = await DB.loadNFT(req.params.nftid);
+   var NFT = await nftxLib.NFTDBCache(req.params.nftid);
    
-   res.send(ret);
+   res.send(NFT);
+   
 });   
+
+app.get('/api/dbcacheall', async (req, res) => {
+   //load from db
+   var NFT = await nftxLib.NFTDBcacheAll();
+   
+   res.send(NFT);
+   
+});   
+
+
 
 
 app.get('/', function (req, res) {
@@ -75,7 +75,7 @@ app.get('/nft/mynft/:address', cache('15 minutes'), async (req, res) => {
    if(req.query.cache == 'reset') {
       apicache.clear(req.originalUrl)
    }   
-   var mynfts =  await nftxLib.getMyNFTs(req.params.address);
+   var mynfts =  await DB.loadNFTsByOwner(req.params.address);
    res.send(mynfts);
 })
 

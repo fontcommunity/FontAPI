@@ -641,7 +641,7 @@ async function _cleaupdir(dir) {
 //Get all the font ids from the remote server
 async function _get_all_font_ids() {
   var font_settings = await _get_remote_json_and_save(FONT_API_SETTINGS);
-  if(_.has(font_settings, 'font_ids') && _is_non_empty_array(font_settings.font_ids)) {
+  if(_.has(font_settings, 'font_ids') && _is_non_empty_array(font_settings.font_ids)) { 
     return font_settings.font_ids;
   }
   return false;

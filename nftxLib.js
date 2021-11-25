@@ -13,7 +13,7 @@ const PaymentTokens = {
     "0x321162Cd933E2Be498Cd2267a90534A804051b11": 'WBTC',
     "0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E": 'DAI',
     "0x69c744D3444202d35a2783929a0F930f2FBB05ad": 'sFTM',
-    "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83": 'wFTM',
+    "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83": 'wFTM', 
     "0x82f0B8B456c1A451378467398982d4834b6829c1": 'MIM',
     "0xdc301622e621166BD8E82f2cA0A26c13Ad0BE355": 'FRAX',
     "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE": "BOO",
@@ -28,7 +28,7 @@ var _ = require('underscore');
 var request = require('sync-request');
 
 var hlp = require('./helper');
-
+var DB = require('./DBlib');
 
 
 var ContractNFTEx = loadContract('fontnftex.json');
@@ -78,10 +78,8 @@ async function getMyNFTs(address) {
 }
 
 
-
+//Get everything about NFT by ID
 async function NFTDetails(nft_id) {
-
-
     var NFT = await viewNFT(nft_id);
     var realOwner = await getRealOwner(nft_id);
     var owner = await ownerOf(nft_id);
@@ -102,9 +100,44 @@ async function NFTDetails(nft_id) {
         }
     };    
  
-    return NFTData;
-
+    
 }
+
+//renew the stuffs in DB by nft ID
+async function NFTDBCache(nft_id) {
+    //Get full Details of NFT
+    var NFTData = await NFTDetails(nft_id);
+   
+    //call the db cache creater to load it
+    var nftObj = hlp.convert_json_to_db_nft(NFTData);
+ 
+    //send the new item
+    var ret = await DB.upsertRow(nftObj);
+ 
+    //load from db
+    var NFT = await DB.loadNFT(nft_id);
+    
+    return NFT;
+}
+ 
+//Load all the NFTs into db and return full list
+async function NFTDBcacheAll() {
+    var items = await _getFontMintableFromBackend();
+    if(!(items && _.size(items))) {
+        return false;
+    }
+    
+    var output = [];
+    for(let i in items) {
+        var item = items[i];
+        //var NFT = await NFTDBCache(item.id); 
+        if(true) {
+            output.push(item.id);
+        }
+    }
+    return [output, items];
+}
+
 
 //View an NFT
 async function viewNFT(nft_id) {
@@ -326,11 +359,13 @@ async function exchangeFees() {
     return parseInt(exchangeFees);    
 }
 
+
 async function feesDistributionAddress() { 
     var address = await ContractNFTEx.methods.feesDistributionAddress().call();  
     return address;    
 }
 
+//Settings
 async function Settings() {
     var output = {
         FTM_RPC: FTM_RPC,
@@ -384,6 +419,8 @@ module.exports = {
     NFTDetails: NFTDetails,
     getAllNFT: getAllNFT,
     getMyNFTs: getMyNFTs,
+    NFTDBCache: NFTDBCache,
+    NFTDBcacheAll: NFTDBcacheAll
       //Get list of all the texts for preview 
       //cleanup: _cleaup_font_src_files,
     

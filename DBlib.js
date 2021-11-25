@@ -54,8 +54,8 @@ async function schemas() {
             NFT_status INTEGER,
             NFT_royality INTEGER, 
             NFT_referralCommission INTEGER,
-            NFT_owner text,
-            NFT_token text, 
+            NFT_owner TEXT,
+            NFT_token TEXT, 
             NFT_orderID INTEGER,
             NFT_price TEXT, 
             NFT_minPrice TEXT,
@@ -112,20 +112,24 @@ async function upsertRow(item) {
     }
     var ret;
 
-    
-    
     try {
 
 
-
-        const stmt = db.prepare('INSERT OR REPLACE INTO nfts (nft_id, owner_address, creator_address, mapped, minted, custody, font_name) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        var columns = 'nft_id, owner_address, creator_address, mapped, minted, custody, font_name, creator_name, NFT_auction, NFT_status, NFT_royality, NFT_referralCommission, NFT_owner, NFT_token, ';
+ 
+        const stmt = db.prepare(`INSERT OR REPLACE INTO nfts (nft_id, owner_address, creator_address, mapped, minted, custody, font_name, creator_name, NFT_auction, NFT_status, NFT_royality, NFT_referralCommission, NFT_owner, NFT_token, NFT_orderID, NFT_price, NFT_minPrice, NFT_highestBidID, boost, licenses_sales_count, licenses_sales_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
         //const stmt = db.prepare('INSERT OR REPLACE INTO nfts VALUES (@nft_id, @owner_address, @NFT_owner)');
-        ret = stmt.run(item.nft_id, item.owner_address, item.creator_address, item.mapped, item.minted, item.custody, item.font_name);
+        ret = stmt.run(item.nft_id, item.owner_address, item.creator_address, item.mapped, item.minted, item.custody, 
+            item.font_name, item.creator_name, item.NFT_auction, item.NFT_status, item.NFT_royality, item.NFT_referralCommission, item.NFT_owner, item.NFT_token,
+            item.NFT_orderID, item.NFT_price, item.NFT_minPrice, item.NFT_highestBidID, item.boost, item.licenses_sales_count, item.licenses_sales_amount
+            );
+            //, 
+            //, item.NFT_owner, NFT_token); 
     }
     catch(E) {
-        ret = E;
-    }
-    return ret;
+        ret = E; 
+    } 
+    return ret; 
 }
 
 async function updateRow() {
@@ -215,10 +219,16 @@ async function loadNFTsByOwner(owner_address) {
         }
     }
 
+    //SELECT * FROM COMPANY WHERE AGE >= 25 OR SALARY >= 65000;
+
+    //const SQL = `SELECT * FROM nfts WHERE owner_address LIKE "` + owner_address + `" OR creator_address LIKE "` + owner_address + `";`;
+    const SQL = `SELECT * FROM nfts WHERE owner_address LIKE ? OR creator_address LIKE ?;`;
     
-    const stmt =  db.prepare('SELECT * FROM nfts WHERE owner_address = ?');
+    const stmt =  db.prepare(SQL);
     
-    const items = stmt.all(owner_address);
+    const items = stmt.all(owner_address, owner_address);
+
+    return items;
     
     if(items && _.size(items)) {
         var output = [];
@@ -242,3 +252,4 @@ module.exports = {
     checkIfFontExists: checkIfFontExists,
     createTables: createTables,
     upsertRow:upsertRow,
+};
