@@ -1,7 +1,26 @@
 var _ = require('underscore');
-
+var request = require('sync-request');
 var Web3 = require('web3');
 var web3utils = Web3.utils;
+
+
+//Get the remote json file
+async function getRemoteJson(url) {
+    var res = request('GET', url);
+    if(!res) {
+        return false;
+    }
+    var items = res.getBody();
+    if(!items){
+        return false
+    }
+
+    items = JSON.parse(items);
+    if(!items){
+        return false
+    }
+    return items;    
+}
 
 //take the db row and convert back to NFT object
 function convert_db_to_json_nft(item) {
@@ -144,7 +163,7 @@ function ObjNFT(_nft) {
 module.exports = { 
     ObjBid: ObjBid,
     ObjNFT: ObjNFT,
-    convert_db_to_json_nft:convert_db_to_json_nft,
-    convert_json_to_db_nft:convert_json_to_db_nft,
-
+    convert_db_to_json_nft: convert_db_to_json_nft,
+    convert_json_to_db_nft: convert_json_to_db_nft,
+    getRemoteJson: getRemoteJson,
 };

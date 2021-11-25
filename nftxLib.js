@@ -178,7 +178,7 @@ async function fontMintableByAddress(address) {
 
 async function _getFontMintableByAddressFromBackend(address) {
     var url = 'https://backend.font.community/api/fantom_mintable_by_address/' + address;
-    var items = await _getRemoteJson(url);
+    var items = await hlp.getRemoteJson(url);
     
     if(!items){
         return false
@@ -193,25 +193,10 @@ async function _getFontMintableByAddressFromBackend(address) {
     return items;  
 }
 
-async function _getRemoteJson(url) {
-    var res = request('GET', url);
-    if(!res) {
-        return false;
-    }
-    var items = res.getBody();
-    if(!items){
-        return false
-    }
-
-    items = JSON.parse(items);
-    if(!items){
-        return false
-    }
-    return items;    
-}
 
 async function _getFontMintableFromBackend() {
-    return _getRemoteJson(FontMintableURL);
+    var data = await hlp.getRemoteJson(FontMintableURL);
+    return data;
     
 }
 

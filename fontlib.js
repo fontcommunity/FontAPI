@@ -16,6 +16,7 @@ const S3SyncClient = require('s3-sync-client');
 const mime = require('mime-types');
 const s3 = require('s3-lambo');
 const AWS = require('aws-sdk'); 
+var hlp = require('./helper');
 
 
 require('dotenv').config()
@@ -213,14 +214,9 @@ async function _process_single_font(font_id, options) {
 //Get the font data from drupal api
 async function _get_drupal_font_api(font_id){
   var api_url = FONT_API_BASE + font_id;
-  var res = request('GET', api_url);
-  var font_data = await JSON.parse(res.getBody('utf8'));
-  if(_is_non_empty_object(font_data)) {
-    return font_data;
-  }
-  return false;
-
-
+  
+  var data = await hlp.getRemoteJson(api_url);
+  return data;
 }
 
 //get list of all parsed metadata and create files 
@@ -616,10 +612,8 @@ function _get_supported_file_types(all = false){
 }
 
 async function _get_remote_json_and_save(api_url, save_to_file = '') {
-  
-  var res = request('GET', api_url);
-  var data = await JSON.parse(res.getBody('utf8'));
-  if(_is_non_empty_object(data) || _is_non_empty_array(data)) {
+  var data = await hlp.getRemoteJson(api_url);
+  if(data) {
     if(save_to_file) {
       file_data = JSON.stringify(data);
       fs.writeFileSync(save_to_file, file_data);
@@ -746,17 +740,11 @@ async function _get_remote_font_files_by_id(font_id) {
 
 //##################### Heloper functions ############################
 async function _is_non_empty_array(_var) {
-  if(_var && _.isArray(_var) && _.size(_var)) {
-    return _var;
-  } 
-  return false;
+  return (_var && _.isArray(_var) && _.size(_var));
 }
 
 async function _is_non_empty_object(_var) {
-  if(_var && _.isObject(_var) && _.size(_var)) {
-    return true;
-  }
-  return false; 
+  return (_var && _.isObject(_var) && _.size(_var));
 }
 
 
@@ -766,4 +754,5 @@ module.exports = {
   generateFontCache: generateFontCache, 
   generateFontCacheS3: generateFontCacheS3, 
   _aws_sync_font: _aws_sync_font,
+  loadFont: _get_drupal_font_api,
 };

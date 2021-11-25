@@ -44,32 +44,8 @@ app.get('/api/dbcacheall', async (req, res) => {
    
    res.send(NFT);
    
-});   
+});      
 
-
-
-
-app.get('/', function (req, res) {
-   res.send('hello world')
-})
-
-app.get('/test/db/:nftid', async (req, res) => {
-   var nft = await DB.loadNFTsByOwner(req.params.nftid);
-   res.send(nft);
-});   
-
-app.get('/test', cache('5 minutes'), (req, res) => {
-
-   if(req.query.cache == 'reset') {
-      apicache.clear(req.originalUrl)
-   }
-
-   res.send([
-      req.originalUrl, 
-      req.path, req.subdomains, req.hostname, req.query.keyword
-      //query.keyword
-   ]);  
-})
 
 app.get('/nft/mynft/:address', cache('15 minutes'), async (req, res) => {
    if(req.query.cache == 'reset') {
@@ -79,9 +55,20 @@ app.get('/nft/mynft/:address', cache('15 minutes'), async (req, res) => {
    res.send(mynfts);
 })
 
+//Get all NFTs that are tradable (in open orders) 
+app.get('/nft/orders', cache('15 minutes'), async (req, res) => {
+   res.send([1,2,3]);
+})
+
+//get all the NFTs 
+app.get('/nft/all', cache('15 minutes'), async (req, res) => {
+   var items = await DB.loadAllNFTs();
+   res.send(items);
+})
+
 // add route to display cache index
 app.get('/api/cache/index', (req, res) => {
-   res.json(apicache.getIndex())
+   res.send(apicache.getIndex())
  })
  
 
@@ -214,7 +201,10 @@ app.get('/api/fontcaches3/:font_id', async (req, res) => {
    res.send(status);  
 })
 
-
+app.get('/api/font/:font_id', cache('1 day'), async (req, res) => {
+   var data = await fontlib.loadFont(req.params.font_id);
+   res.send(data);
+});
 
 
 app.get('/api/testfond/:font_id', async (req, res) => {

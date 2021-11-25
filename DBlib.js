@@ -227,18 +227,13 @@ async function loadNFTsByOwner(owner_address) {
     const stmt =  db.prepare(SQL);
     
     const items = stmt.all(owner_address, owner_address);
-
     return items;
-    
-    if(items && _.size(items)) {
-        var output = [];
-        for(let i in items) {
-            var item = items[i];
-            item = hlp.convert_db_to_json_nft(item);
-            output.push(item);
-        }
-        return output;
-    }
+}
+
+async function loadAllNFTs() {
+    const SQL = `SELECT * FROM nfts;`;
+    const stmt =  db.prepare(SQL);
+    const items = stmt.all();
     return items;
 }
 
@@ -251,5 +246,6 @@ module.exports = {
     loadNFTsByOwner: loadNFTsByOwner,
     checkIfFontExists: checkIfFontExists,
     createTables: createTables,
-    upsertRow:upsertRow,
+    upsertRow: upsertRow,
+    loadAllNFTs: loadAllNFTs,
 };
