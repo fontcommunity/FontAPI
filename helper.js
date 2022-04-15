@@ -7,13 +7,25 @@ async function getFontTeaser(font_id, compact = false) {
     var API_URL = 'https://apppreprod.font.community/api/fontteaser/' + font_id;
     var data = await getRemoteJson(API_URL);
 
+    var _empty_teaser = {
+        unverified: 1,
+        img: '',
+        categories: [],
+        free: 0,
+        status: 0,
+        style_counts: 0,
+        display_font_file: '',
+        display_font_family: 'arial',
+        display_font_weight: '',
+    };
+
     //remove unwanted / redunnend data
     if(!compact) {
-        return data;
+        return _empty_teaser;
     }
 
     if(!data) {
-        return data;
+        return _empty_teaser;
     }
     
     return _.pick(data, 'unverified', 'img', 'categories', 'free', 'status', 'style_counts', 'display_font_file', 'display_font_family', 'display_font_weight');

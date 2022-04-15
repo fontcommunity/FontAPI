@@ -247,6 +247,12 @@ async function loadAllNFTs() {
     const SQL = `SELECT * FROM nfts;`;
     const stmt =  db.prepare(SQL);
     const items = stmt.all();
+    if(items) {
+        for(let i in items) {
+            items[i].teaser = JSON.parse(items[i].teaser);
+        }
+    }
+
     return items;
 }
 

@@ -62,10 +62,30 @@ async function NFTDetails(nft_id) {
     var creator = await OriginalNFTCreators(nft_id);
     var boost = await NFTBoost(nft_id);
     var teaser = await hlp.getFontTeaser(nft_id, true);
+    var NFTTable = await DB.loadNFT(nft_id);
+
+    NFT.mapped = 0;
+    NFT.minted = 0;
+    NFT.custody = 0;
+    NFT.licenses_sales_count = 0;
+    NFT.licenses_sales_amount = '';
+    
+
+    if(NFTTable && _.isObject(NFTTable) && !_.isEmpty(NFTTable)) {
+        NFT.minted = NFTTable.minted;
+        NFT.custody = NFTTable.custody;        
+        NFT.mapped = NFTTable.mapped; 
+        NFT.licenses_sales_count = NFTTable.licenses_sales_count; 
+        NFT.licenses_sales_amount = NFTTable.licenses_sales_amount; 
+    
+    }
+
+    
 
     return {
         nft_id: nft_id,
         NFT: NFT,
+        //NFT_Extra: NFTTable,
         BIDS: {},
         'realOwner': realOwner,
         owner: owner,
